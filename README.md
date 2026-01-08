@@ -96,3 +96,7 @@ uv run asclepius --restic-repo /path/to/repo --restic-passwd your-password --rec
 ## Configuration
 
 Validators are configured in `validators.yaml`. Each validator specifies supported MIME types, file extensions, and validation settings.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.

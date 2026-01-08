@@ -1,0 +1,142 @@
+# Validator Configuration
+# Maps MIME types and file types to validators
+# Validator names must match the class names in src/validators/
+
+validators:
+  # Email validator (class: EmailValidator)
+  # Validates EML email files
+  EmailValidator:
+    description: "Email file (EML) structure validator"
+    mime_types:
+      - "message/rfc822"
+    
+    extensions:
+      - ".eml"
+  
+  # Archive validator (class: ArchiveValidator)
+  # Validates ZIP/TAR archives and optionally their contents
+  ArchiveValidator:
+    description: "Archive integrity validator with recursive content validation"
+    settings:
+      recursive_validate: true  # Extract and validate archive contents
+    mime_types:
+      - "application/zip"
+      - "application/x-tar"
+      - "application/x-gzip"
+      - "application/x-bzip2"
+      - "application/x-xz"
+    
+    extensions:
+      - ".zip"
+      - ".tar"
+      - ".tar.gz"
+      - ".tgz"
+      - ".tar.bz2"
+      - ".tar.xz"
+  
+  # YARA malware detection (class: YaraValidator)
+  # Scans ALL file types for malware signatures
+  YaraValidator:
+    description: "YARA-based malware detection for all file types"
+    mime_types:
+      - "all"  # Scan all MIME types
+    
+    extensions:
+      - "all"  # Scan all file extensions
+  
+  # Video validators using ffmpeg (class: VideoValidator)
+  VideoValidator:
+    description: "ffmpeg-based video integrity validator"
+    mime_types:
+      - "video/mp4"
+      - "video/x-matroska"  # .mkv
+      - "video/quicktime"  # .mov
+      - "video/x-msvideo"  # .avi
+      - "video/x-ms-wmv"  # .wmv
+      - "video/webm"
+      - "video/mpeg"
+    
+    extensions:
+      - ".mp4"
+      - ".mkv"
+      - ".mov"
+      - ".avi"
+      - ".wmv"
+      - ".webm"
+      - ".mpeg"
+      - ".mpg"
+      - ".m4v"
+      - ".flv"
+  
+  # Image validators using PIL (class: ImageValidator)
+  ImageValidator:
+    description: "PIL-based image structural integrity validator"
+    mime_types:
+      - "image/jpeg"
+      - "image/jpg"
+      - "image/png"
+      - "image/gif"
+      - "image/bmp"
+      - "image/webp"
+      - "image/tiff"
+    
+    extensions:
+      - ".jpg"
+      - ".jpeg"
+      - ".png"
+      - ".gif"
+      - ".bmp"
+      - ".webp"
+      - ".tiff"
+      - ".tif"
+  
+  # Document validators using MarkItDown (class: MarkItDownValidator)
+  MarkItDownValidator:
+    description: "MarkItDown parser with entropy validation"
+    settings:
+      check_entropy: true
+      entropy_min: 1.5
+      entropy_max: 5.5
+    mime_types:
+      # Office Documents
+      - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"  # .docx
+      - "application/msword"  # .doc
+      - "application/vnd.openxmlformats-officedocument.presentationml.presentation"  # .pptx
+      - "application/vnd.ms-powerpoint"  # .ppt
+      - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"  # .xlsx
+      - "application/vnd.ms-excel"  # .xls
+      
+      # PDFs
+      - "application/pdf"
+      
+      # Web formats
+      - "text/html"
+      - "application/xhtml+xml"
+      - "text/xml"
+      - "application/xml"
+      - "application/json"
+      - "text/csv"
+      - "text/plain"
+    
+    extensions:
+      # Fallback extensions if MIME type detection fails
+      - ".docx"
+      - ".doc"
+      - ".pptx"
+      - ".ppt"
+      - ".xlsx"
+      - ".xls"
+      - ".pdf"
+      - ".html"
+      - ".htm"
+      - ".xml"
+      - ".json"
+      - ".csv"
+      - ".txt"
+
+# Default validator if no match found
+default_validator: null  # null means skip unsupported files
+
+# Global validator settings
+settings:
+  yara_rules_path: "yara-rules"  # Path to YARA rules directory

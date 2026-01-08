@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Restic
+restic-repo/
+*.restic/
+
+# YARA Rules (if cloned from external repo)
+yara-rules-repo/
+
+# Temporary files
+*.tmp
+*.log
+tmp/
+temp/
+
+# Project specific
+test_*.eml
+test_*.zip
+test_*.tar
+*_corrupt.*
+
+# UV lock file (optional - comment out if you want to commit it)
+# uv.lock

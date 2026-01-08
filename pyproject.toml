@@ -1,0 +1,30 @@
+[project]
+name = "asclepius"
+version = "0.1.0"
+description = "File Integrity Validator for Backups"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "markitdown[all]",
+    "click>=8.0.0",
+    "filetype>=1.2.0",
+    "pyyaml>=6.0.0",
+    "pillow>=10.0.0",
+    "ffmpeg-python>=0.2.0",
+    "yara-python>=4.3.0",
+    "eml-parser>=1.17.0",
+]
+
+[project.scripts]
+asclepius = "main:main"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+include = ["main.py"]

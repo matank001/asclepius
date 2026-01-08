@@ -97,6 +97,23 @@ uv run asclepius --restic-repo /path/to/repo --restic-passwd your-password --rec
 
 Validators are configured in `validators.yaml`. Each validator specifies supported MIME types, file extensions, and validation settings.
 
+### YARA Rules Setup
+
+The YARA validator scans all files for malware signatures. To enable it:
+
+1. Clone a YARA rules repository or add your own rules:
+```bash
+git clone git@github.com:embee-research/Yara-detection-rules.git
+```
+
+2. Configure the path in `validators.yaml`:
+```yaml
+settings:
+  yara_rules_path: "Yara-detection-rules"
+```
+
+If YARA rules are not found or fail to compile, the validator will skip scanning with a single warning at startup.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.

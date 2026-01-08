@@ -116,15 +116,29 @@ def get_validators(file_path: Path) -> list[FileValidator]:
     # Detect actual file type
     mime_type, detected_ext = detect_file_type(file_path)
     
-    # Try to get validators by MIME type first
-    validator_class_names = []
-    if mime_type:
-        validator_class_names = config.get_validators_for_mime_type(mime_type)
+    # Collect all matching validators
+    validator_class_names = set()
     
-    # Fallback to extension-based detection
+    # Try MIME type matching
+    if mime_type:
+        validator_class_names.update(config.get_validators_for_mime_type(mime_type))
+    
+    # Try extension-based matching
+    file_ext = file_path.suffix.lower()
+    if file_ext:
+        validator_class_names.update(config.get_validators_for_extension(file_ext))
+    
+    # Always check for validators with "all" wildcard (even if no mime/ext detected)
     if not validator_class_names:
-        file_ext = file_path.suffix.lower()
-        validator_class_names = config.get_validators_for_extension(file_ext)
+        # Check all validators for "all" wildcard
+        validators_config = config.config.get('validators', {})
+        for validator_name, validator_info in validators_config.items():
+            mime_types = validator_info.get('mime_types', [])
+            extensions = validator_info.get('extensions', [])
+            if "all" in mime_types or "all" in extensions:
+                validator_class_names.add(validator_name)
+    
+    validator_class_names = list(validator_class_names)
     
     # Instantiate all matching validators
     validators = []

@@ -44,7 +44,7 @@ class VideoValidator(FileValidator):
             audio_streams = [s for s in probe.get('streams', []) if s.get('codec_type') == 'audio']
             
             if not video_streams:
-                return False, f"✗ No video stream found in {file_path.name}"
+                return False, self.format_error(file_path, "No video stream found")
             
             # Get primary video stream info
             video = video_streams[0]
@@ -77,7 +77,7 @@ class VideoValidator(FileValidator):
             # If corruption detected, report as invalid
             if corruption_indicators:
                 issues = ", ".join(corruption_indicators)
-                return False, f"✗ Video corruption in {file_path.name}: {issues}"
+                return False, self.format_error(file_path, issues)
             
             # Build info message
             info_parts = [f"{codec}", f"{width}x{height}"]
@@ -88,7 +88,7 @@ class VideoValidator(FileValidator):
                 info_parts.append(f"audio:{audio_codec}")
             
             info = ", ".join(info_parts)
-            return True, f"✓ Valid: {file_path.name} ({info})"
+            return True, self.format_valid(file_path, info)
             
         except ffmpeg.Error as e:
             error_msg = e.stderr.decode() if e.stderr else str(e)
@@ -96,7 +96,7 @@ class VideoValidator(FileValidator):
             lines = error_msg.split('\n')
             relevant_lines = [l for l in lines if 'error' in l.lower() or 'invalid' in l.lower()]
             error_summary = relevant_lines[0] if relevant_lines else "ffmpeg probe failed"
-            return False, f"✗ Video corruption in {file_path.name}: {error_summary}"
+            return False, self.format_error(file_path, error_summary)
         
         except Exception as e:
-            return False, f"✗ Error validating {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, str(e))

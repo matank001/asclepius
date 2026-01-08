@@ -22,36 +22,34 @@ def validate_files(files_to_validate: list[Path]) -> tuple[int, int, int]:
     for file_path in files_to_validate:
         validators = get_validators(file_path)
         
-        # Track if file passed all validators
+        # Track validation results
         all_valid = True
-        file_skipped = False
-        messages = []
+        any_validator_ran = False
+        error_messages = []
         
         # Run all validators on this file
         for validator in validators:
             is_valid, message = validator.validate(file_path)
             
-            if "Unsupported file type" in message or "Skipped:" in message:
-                file_skipped = True
-                messages.append(message)
-            elif not is_valid:
-                all_valid = False
-                messages.append(message)
+            # Check if this validator actually ran (not skipped/unsupported)
+            if "Unsupported file type" not in message and "Skipped:" not in message:
+                any_validator_ran = True
+                
+                if not is_valid:
+                    all_valid = False
+                    error_messages.append(message)
         
         # Report results
-        if file_skipped:
+        # Only count as skipped if NO validators actually ran
+        if not any_validator_ran:
             skipped_count += 1
-            for msg in messages:
-                if "Unsupported file type" in msg:
-                    click.echo(f"⊘ Unsupported: {file_path.name} - {msg}")
-                else:
-                    click.echo(msg)
+            # Don't print unsupported files - only count them
         elif all_valid:
             valid_count += 1
             # Don't print valid files - only show invalid ones
         else:
             invalid_count += 1
-            for msg in messages:
+            for msg in error_messages:
                 # Color invalid messages in red
                 colored_msg = click.style(msg, fg='red')
                 click.echo(colored_msg, err=True)

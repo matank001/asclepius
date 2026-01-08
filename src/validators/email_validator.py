@@ -48,14 +48,14 @@ class EmailValidator(FileValidator):
             
             # Basic validation - check if we got a valid structure
             if not isinstance(parsed_eml, dict):
-                return False, f"✗ Invalid email structure in {file_path.name}"
+                return False, self.format_error(file_path, "Invalid email structure")
             
             # Check for minimum required headers
             header = parsed_eml.get('header', {})
             if not header.get('from'):
-                return False, f"✗ Invalid email {file_path.name}: Missing 'From' header"
+                return False, self.format_error(file_path, "Missing 'From' header")
             
-            return True, f"✓ Valid: {file_path.name}"
+            return True, self.format_valid(file_path)
         
         except Exception as e:
-            return False, f"✗ Email parse error in {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, str(e))

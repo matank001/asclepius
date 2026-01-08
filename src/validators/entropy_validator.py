@@ -59,8 +59,9 @@ class EntropyValidator:
         Returns:
             Tuple of (is_valid, message)
         """
+        # Skip entropy analysis for short text - consider it valid
         if not text or len(text) < min_length:
-            return False, f"Text too short for entropy analysis (< {min_length} chars)"
+            return True, "Valid (text too short for entropy analysis)"
         
         entropy = self.calculate_entropy(text)
         

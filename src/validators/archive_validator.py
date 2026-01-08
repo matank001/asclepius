@@ -45,10 +45,11 @@ class ArchiveValidator(FileValidator):
             elif extension in ['.tar', '.tar.gz', '.tgz', '.tar.bz2', '.tar.xz']:
                 return self._validate_tar(file_path)
             else:
-                return False, f"Unsupported archive type: {extension}"
+                # Skip unsupported archive types (e.g., .npz, .jar, etc.)
+                return True, self.format_valid(file_path)
         
         except Exception as e:
-            return False, f"✗ Archive corruption in {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, str(e))
     
     def _validate_zip(self, file_path: Path) -> Tuple[bool, str]:
         """Validate ZIP archive."""
@@ -57,7 +58,7 @@ class ArchiveValidator(FileValidator):
                 # Test archive integrity
                 bad_file = zf.testzip()
                 if bad_file:
-                    return False, f"✗ Corrupted file in archive: {bad_file}"
+                    return False, self.format_error(file_path, f"Corrupted file in archive: {bad_file}")
                 
                 file_count = len(zf.namelist())
                 
@@ -65,10 +66,10 @@ class ArchiveValidator(FileValidator):
                 if self.recursive_validate:
                     return self._validate_archive_contents(zf, file_path, file_count, 'zip')
                 
-                return True, f"✓ Valid: {file_path.name} (ZIP, {file_count} files)"
+                return True, self.format_valid(file_path, f"ZIP, {file_count} files")
         
         except zipfile.BadZipFile as e:
-            return False, f"✗ Invalid ZIP archive {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, str(e))
     
     def _validate_tar(self, file_path: Path) -> Tuple[bool, str]:
         """Validate TAR archive."""
@@ -81,10 +82,10 @@ class ArchiveValidator(FileValidator):
                 if self.recursive_validate:
                     return self._validate_archive_contents(tf, file_path, file_count, 'tar')
                 
-                return True, f"✓ Valid: {file_path.name} (TAR, {file_count} files)"
+                return True, self.format_valid(file_path, f"TAR, {file_count} files")
         
         except tarfile.TarError as e:
-            return False, f"✗ Invalid TAR archive {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, str(e))
     
     def _validate_archive_contents(self, archive, file_path: Path, file_count: int, archive_type: str) -> Tuple[bool, str]:
         """Validate contents of archive recursively."""
@@ -116,7 +117,7 @@ class ArchiveValidator(FileValidator):
                         extracted_files.append(extracted_file)
                 
                 if not extracted_files:
-                    return True, f"✓ Valid: {file_path.name} ({archive_type.upper()}, {file_count} files)"
+                    return True, self.format_valid(file_path, f"{archive_type.upper()}, {file_count} files")
                 
                 # Validate using shared function (but collect results quietly)
                 import io
@@ -134,9 +135,9 @@ class ArchiveValidator(FileValidator):
                     issues = "; ".join(error_lines[:3])  # Show first 3
                     if len(error_lines) > 3:
                         issues += f" and {len(error_lines) - 3} more"
-                    return False, f"✗ Archive {file_path.name} contains invalid files: {issues}"
+                    return False, self.format_error(file_path, f"Contains invalid files: {issues}")
                 
-                return True, f"✓ Valid: {file_path.name} ({archive_type.upper()}, {file_count} files, all validated)"
+                return True, self.format_valid(file_path, f"{archive_type.upper()}, {file_count} files, all validated")
             
             except Exception as e:
-                return False, f"✗ Error validating archive contents: {str(e)}"
+                return False, self.format_error(file_path, f"Error validating archive contents: {str(e)}")

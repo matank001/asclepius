@@ -38,7 +38,7 @@ class ImageValidator(FileValidator):
                 width, height = img.size
                 mode = img.mode
                 
-            return True, f"✓ Valid: {file_path.name} ({format_name}, {width}x{height}, {mode})"
+            return True, self.format_valid(file_path, f"{format_name}, {width}x{height}, {mode}")
             
         except Exception as e:
-            return False, f"✗ Image corruption in {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, str(e))

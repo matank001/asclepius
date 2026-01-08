@@ -42,7 +42,7 @@ class MarkItDownValidator(FileValidator):
         try:
             result = self.md.convert(str(file_path))
             if not result or not result.text_content:
-                return False, f"✗ Empty or invalid content: {file_path.name}"
+                return False, self.format_error(file_path, "Empty or invalid content")
             
             # Validate entropy of extracted text
             if self.entropy_validator:
@@ -50,11 +50,11 @@ class MarkItDownValidator(FileValidator):
                 is_valid, entropy_msg = self.entropy_validator.validate_text(text)
                 
                 if not is_valid:
-                    return False, f"✗ {file_path.name}: {entropy_msg}"
+                    return False, self.format_error(file_path, entropy_msg)
                 
-                return True, f"✓ Valid: {file_path.name} ({entropy_msg})"
+                return True, self.format_valid(file_path, entropy_msg)
             else:
-                return True, f"✓ Valid: {file_path.name}"
+                return True, self.format_valid(file_path)
                 
         except Exception as e:
-            return False, f"✗ Parse error in {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, f"Parse error: {str(e)}")

@@ -14,23 +14,29 @@ class YaraValidator(FileValidator):
     # Class variable to track if warning has been shown
     _warning_shown = False
     
-    def __init__(self, config: dict = None):
+    def __init__(self):
         """Initialize YARA validator and load rules."""
-        super().__init__(config)
-        from ..config import get_global_setting
+        from ..config import ValidatorConfig
         
-        rules_dir = get_global_setting('yara_rules_path', 'yara-rules')
+        config = ValidatorConfig()
+        rules_dir = config.get_setting('yara_rules_path', 'yara-rules')
         
         self.rules = None
         self.rules_path = Path(__file__).parent.parent.parent / rules_dir
         self.yara_available = self._check_yara_available()
+        self.load_error = None
         
         if self.yara_available:
             self._load_rules()
             
         # Show warning once if rules aren't available
         if not self.rules and not YaraValidator._warning_shown:
-            click.echo(click.style("⚠ Warning: YARA rules not loaded (clone yara-rules repository). YARA validation will be skipped.", fg='yellow'))
+            if self.rules_path.exists():
+                error_msg = f": {self.load_error}" if self.load_error else ""
+                click.echo(click.style(f"⚠ Warning: YARA rules found but failed to compile{error_msg}", fg='yellow'))
+                click.echo(click.style("  YARA validation will be skipped.", fg='yellow'))
+            else:
+                click.echo(click.style("⚠ Warning: YARA rules not found (clone yara-rules repository). YARA validation will be skipped.", fg='yellow'))
             YaraValidator._warning_shown = True
     
     def _check_yara_available(self) -> bool:
@@ -63,7 +69,8 @@ class YaraValidator(FileValidator):
                     self.rules = yara.compile(filepaths=rule_files)
         
         except Exception as e:
-            print(f"Warning: Could not load YARA rules: {e}")
+            # Store error for display in startup warning
+            self.load_error = str(e)
             self.rules = None
     
     def validate(self, file_path: Path) -> Tuple[bool, str]:
@@ -85,7 +92,7 @@ class YaraValidator(FileValidator):
         # Skip validation silently if YARA is not available or rules not loaded
         if not self.yara_available or not self.rules:
             # Return as valid - validation is skipped silently
-            return True, f"✓ Valid: {file_path.name}"
+            return True, self.format_valid(file_path)
         
         # Scan file with YARA rules
         try:
@@ -98,10 +105,10 @@ class YaraValidator(FileValidator):
                     match_names.append(f"and {len(matches) - 3} more")
                 
                 matches_str = ", ".join(match_names)
-                return False, f"✗ MALWARE DETECTED in {file_path.name}: {matches_str}"
+                return False, self.format_error(file_path, f"MALWARE DETECTED: {matches_str}")
             
             # No matches - file appears clean
-            return True, f"✓ Clean: {file_path.name} (YARA scan passed)"
+            return True, self.format_valid(file_path, "YARA scan passed")
         
         except Exception as e:
-            return False, f"✗ YARA scan error in {file_path.name}: {str(e)}"
+            return False, self.format_error(file_path, str(e))

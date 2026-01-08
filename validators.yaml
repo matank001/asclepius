@@ -139,4 +139,4 @@ default_validator: null  # null means skip unsupported files
 
 # Global validator settings
 settings:
-  yara_rules_path: "yara-rules"  # Path to YARA rules directory
+  yara_rules_path: "Yara-detection-rules"  # Path to YARA rules directory

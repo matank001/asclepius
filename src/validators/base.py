@@ -7,6 +7,15 @@ from typing import Tuple
 class FileValidator:
     """Base class for file validators."""
     
+    def is_enabled(self) -> bool:
+        """
+        Check if validator is enabled and ready to use.
+        
+        Returns:
+            True if validator should be used, False to skip
+        """
+        return True
+    
     def validate(self, file_path: Path) -> Tuple[bool, str]:
         """
         Validate a file.

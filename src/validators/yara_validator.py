@@ -13,6 +13,7 @@ class YaraValidator(FileValidator):
     
     # Class variable to track if warning has been shown
     _warning_shown = False
+    _rules_available = False
     
     def __init__(self):
         """Initialize YARA validator and load rules."""
@@ -29,6 +30,10 @@ class YaraValidator(FileValidator):
         if self.yara_available:
             self._load_rules()
             
+        # Update class variable to track if any instance has rules
+        if self.rules:
+            YaraValidator._rules_available = True
+            
         # Show warning once if rules aren't available
         if not self.rules and not YaraValidator._warning_shown:
             if self.rules_path.exists():
@@ -38,6 +43,10 @@ class YaraValidator(FileValidator):
             else:
                 click.echo(click.style("⚠ Warning: YARA rules not found (clone yara-rules repository). YARA validation will be skipped.", fg='yellow'))
             YaraValidator._warning_shown = True
+    
+    def is_enabled(self) -> bool:
+        """Check if YARA validator is enabled (has rules loaded)."""
+        return self.rules is not None
     
     def _check_yara_available(self) -> bool:
         """Check if YARA is properly installed."""

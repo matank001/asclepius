@@ -145,7 +145,14 @@ def get_validators(file_path: Path) -> list[FileValidator]:
     for validator_class_name in validator_class_names:
         if validator_class_name in _validator_registry:
             validator_class = _validator_registry[validator_class_name]
-            validators.append(validator_class())
+            try:
+                validator_instance = validator_class()
+                # Only add if validator is enabled
+                if validator_instance.is_enabled():
+                    validators.append(validator_instance)
+            except Exception as e:
+                # Skip validators that fail to instantiate
+                print(f"Warning: Could not instantiate {validator_class_name}: {e}")
     
     # If no validators found, return unsupported validator
     if not validators:

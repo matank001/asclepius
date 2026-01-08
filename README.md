@@ -5,12 +5,12 @@
 </div>
 
 
-Asclepius validates backup integrity by restoring files and actively testing their recoverability. Instead of trusting metadata, it attempts to parse real file formats (documents, images, videos, archives, emails) to confirm backups can actually be read.
+Asclepius validates backup integrity by restoring files and actively testing their recoverability. Instead of trusting metadata, it attempts to parse real file formats (documents, images, videos, archives, emails) to confirm backups can actually be read and are safe to use.
 
 ## Installation
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/matank001/asclepius
 cd asclepius
 uv sync
 ```
@@ -54,7 +54,7 @@ Unlike `restic check` which verifies repository structure and data integrity, As
 
 #### Repository Check Only
 
-Runs `restic check --read-data` to verify repository integrity:
+Runs metadata checks to verify repository integrity:
 
 ```bash
 uv run asclepius --restic-repo /path/to/repo --restic-passwd your-password

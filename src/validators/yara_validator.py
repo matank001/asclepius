@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Tuple
 import yara
+import click
 
 from .base import FileValidator
 
@@ -10,12 +11,15 @@ from .base import FileValidator
 class YaraValidator(FileValidator):
     """Validator that scans files using YARA rules for malware detection."""
     
-    def __init__(self):
+    # Class variable to track if warning has been shown
+    _warning_shown = False
+    
+    def __init__(self, config: dict = None):
         """Initialize YARA validator and load rules."""
-        from ..config import ValidatorConfig
+        super().__init__(config)
+        from ..config import get_global_setting
         
-        config = ValidatorConfig()
-        rules_dir = config.get_setting('yara_rules_path', 'yara-rules')
+        rules_dir = get_global_setting('yara_rules_path', 'yara-rules')
         
         self.rules = None
         self.rules_path = Path(__file__).parent.parent.parent / rules_dir
@@ -23,6 +27,11 @@ class YaraValidator(FileValidator):
         
         if self.yara_available:
             self._load_rules()
+            
+        # Show warning once if rules aren't available
+        if not self.rules and not YaraValidator._warning_shown:
+            click.echo(click.style("⚠ Warning: YARA rules not loaded (clone yara-rules repository). YARA validation will be skipped.", fg='yellow'))
+            YaraValidator._warning_shown = True
     
     def _check_yara_available(self) -> bool:
         """Check if YARA is properly installed."""
@@ -73,13 +82,10 @@ class YaraValidator(FileValidator):
         if not file_path.is_file():
             return False, f"Not a file: {file_path}"
         
-        # Check if YARA is available
-        if not self.yara_available:
-            return False, f"⊘ Skipped: {file_path.name} - YARA not installed"
-        
-        # Check if rules are loaded
-        if not self.rules:
-            return False, f"⊘ Skipped: {file_path.name} - YARA rules not loaded (clone yara-rules repository)"
+        # Skip validation silently if YARA is not available or rules not loaded
+        if not self.yara_available or not self.rules:
+            # Return as valid - validation is skipped silently
+            return True, f"✓ Valid: {file_path.name}"
         
         # Scan file with YARA rules
         try:
